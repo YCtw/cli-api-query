@@ -61,8 +61,7 @@ MODELS = [
 # ---------------------------------------------------------------------------
 
 def _get_client(model_cfg: dict) -> OpenAI:
-    api_key = os.getenv(model_cfg["api_key_env"]) # For production environment
-    # api_key = "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" # For local testing
+    api_key = os.getenv(model_cfg["api_key_env"]) # Replace with your own API key: Open AI / Groq
     if not api_key:
         raise RuntimeError(
             f"Missing env var: {model_cfg['api_key_env']} "
