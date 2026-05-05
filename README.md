@@ -147,7 +147,7 @@ Output: sort=updated, min_stars=null
 | `"tp3 python repos"` | Limit (`tp3` → `top 3`) | ✅ Corrected |
 | `"i want bst pyhton repo latset plz"` | Multiple overlapping typos | ✅ Correctly resolves as conflict: `sort=updated, min_stars=100` |
 | `"asdfgh python qwer"` | Nonsense tokens | ✅ Extracts `language=python`, discards rest |
-| `"top machien learning repos"` | Keyword phrase (`machien learning`) | ❌ Initially preserved as-is - fixed |
+| `"top machien learning repos"` | Keyword phrase (`machien learning`) | ❌ Initially preserved as-is |
 
 **Language and sort typos** are handled by the LLM's contextual reasoning without a separate spell-checker. Explicit normalization rules in the prompt cover the most common aliases (`golang` → `go`, `py` → `python`, etc.).
 
