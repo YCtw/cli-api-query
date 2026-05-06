@@ -5,7 +5,7 @@ from openai import OpenAI
 from prompts import SYSTEM_PROMPT, FEW_SHOTS
 
 
-For production environment
+#For production environment
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY")) # Setup your own API key
 
 # Default output if parsing fails
