@@ -57,12 +57,12 @@ GitHub API Mapping:
     "machien learning" -> "machine learning"
 
 1.3 min_stars
-- Set min_stars only when the user expresses a star threshold:
+- Set min_stars ONLY when the user explicitly expresses a star threshold:
     "more than 10000 stars" -> 10000
     "over 5000 stars"       -> 5000
     ">100 stars"            -> 100
-- When popularity LOSES the sort battle (see section 5), use min_stars = 100
-  as a soft popularity floor.
+- Do NOT invent or infer star thresholds from words like:
+    "top", "best", "popular", "cool", or "interesting".
 - NEVER overwrite a user-provided star threshold.
 
 ---
@@ -70,19 +70,19 @@ GitHub API Mapping:
 2. sort parameter
 
 Allowed values: "stars" | "forks" | "updated"
-
 Mapping:
-- "top", "best", "popular" indicate popularity intent.
-  Use sort="stars" ONLY if no stronger or later sorting instruction overrides it.
-- "most forked"                    -> "forks"
+- "top", "best", and "popular" should normally be represented
+  ONLY through sort="stars", not through min_stars filtering.
+- Use sort="stars" ONLY if no stronger or later sorting instruction overrides it.
+- If sort="stars" is already selected, do NOT additionally set
+  min_stars unless the user explicitly specifies a star threshold.
+- "most forked" -> "forks"
 - "recent", "latest", "new", "newest" -> "updated"
 
 ---
 
 3. order parameter
-
 Allowed values: "asc" | "desc"
-
 - Default: "desc".
 - Use "asc" ONLY when the user explicitly asks for ascending, least, lowest,
   oldest, or "least X" (e.g., "least forked", "oldest python repos").
@@ -90,7 +90,6 @@ Allowed values: "asc" | "desc"
 ---
 
 4. limit (-> per_page) parameter
-
 - Integer between 1 and 100.
 - Default: 5.
 - Extract the number from any of these formats:
@@ -104,7 +103,6 @@ Allowed values: "asc" | "desc"
 ---
 
 5. Conflict resolution
-
 When multiple ranking intents appear in the SAME query (e.g., "top" AND
 "latest", or "most forked" AND "newest"):
 
@@ -116,11 +114,33 @@ When multiple ranking intents appear in the SAME query (e.g., "top" AND
        updated > stars > forks
 
 5.2 Preserve losing signals where safe:
-    - If "top"/"best"/"popular" LOST and min_stars is still null,
-      set min_stars = 100 as a popularity floor.
-    - If min_stars is already set by the user, do NOT overwrite it.
-    - If "most forked" LOST, drop it silently. The schema has no min_forks
-      field, so there is nowhere to preserve it.
+
+- If popularity intent ("top", "best", "popular")
+  LOST the final sort field,
+  AND min_stars is still null,
+  set:
+      min_stars = 100
+  as a soft popularity constraint.
+- IMPORTANT:
+  If popularity intent already WON the final sort field
+  (sort="stars"),
+  then min_stars MUST remain null
+  unless the user explicitly provided a star threshold.
+Examples:
+- "top python repos"
+    -> sort="stars", min_stars=null
+- "best backend projects"
+    -> sort="stars", min_stars=null
+- "popular javascript repos"
+    -> sort="stars", min_stars=null
+- "top python repos but latest"
+    -> sort="updated", min_stars=100
+- If min_stars is already set by the user,
+  do NOT overwrite it.
+- If "most forked" LOST,
+  drop it silently.
+  The schema has no min_forks field,
+  so there is nowhere to preserve it.
 
 5.3 Recency must be represented ONLY as sort="updated".
     Do NOT invent date filter fields like "created:>..." -- they are
@@ -129,17 +149,14 @@ When multiple ranking intents appear in the SAME query (e.g., "top" AND
 ---
 
 6. Multilingual Handling:
-
 - The user input may be written in languages other than English or in mixed-language form.
 - You MUST interpret the meaning semantically and map it into the same schema.
-
 - Do NOT rely on literal keyword matching.
 - Instead, infer intent such as:
   - popularity (e.g., top, best)
   - recency (e.g., latest, newest)
   - ranking (e.g., top 3)
   - topic/domain (e.g., machine learning, backend)
-
 - If the meaning is clear, convert it into structured fields.
 - If the meaning is uncertain, fall back to safe defaults instead of guessing.
 
@@ -148,22 +165,18 @@ When multiple ranking intents appear in the SAME query (e.g., "top" AND
 ---
 
 7. Fallback behavior
-
 - If the input is unclear, noisy, or contains no meaningful signals:
   - Keep language if identifiable, otherwise set language = null
   - Set keywords = []
   - Set min_stars = null
   - Use default sort="stars" and order="desc"
   - Use default limit=5
-
 - Do NOT attempt to infer meaning from completely random or unrecognizable words.
-
 - If only a programming language is detected, return a generic query using that language with default sorting.
 
 ---
 
 8. Output requirements
-
 - Return ONLY valid JSON, parseable by json.loads().
 - Use EXACTLY the schema keys; add no extra fields; omit no required fields.
 - sort MUST be one of: "stars", "forks", "updated".

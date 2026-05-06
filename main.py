@@ -23,6 +23,5 @@ def main():
         print(repo["full_name"], repo["stargazers_count"])
 
 
-
 if __name__ == "__main__":
     main()
