@@ -1,0 +1,35 @@
+{"id":"case_001","category":"basic","input":"top 3 python repos","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":3}}
+{"id":"case_002","category":"basic","input":"best javascript projects","expected":{"intent":"search_repositories","language":"javascript","keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_003","category":"basic","input":"latest golang repos","expected":{"intent":"search_repositories","language":"go","keywords":[],"min_stars":null,"sort":"updated","order":"desc","limit":5}}
+{"id":"case_004","category":"basic","input":"most forked python repositories","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":null,"sort":"forks","order":"desc","limit":5}}
+{"id":"case_005","category":"basic","input":"python repos with over 10000 stars","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":10000,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_006","category":"basic","input":"popular data science python repos with over 5000 stars","expected":{"intent":"search_repositories","language":"python","keywords":["data science"],"min_stars":5000,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_007","category":"basic","input":"machine learning repositories","expected":{"intent":"search_repositories","language":null,"keywords":["machine learning"],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_008","category":"basic","input":"top backend repos","expected":{"intent":"search_repositories","language":null,"keywords":["backend"],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_009","category":"basic","input":"top 10 web framework projects","expected":{"intent":"search_repositories","language":null,"keywords":["web framework"],"min_stars":null,"sort":"stars","order":"desc","limit":10}}
+
+{"id":"case_010","category":"ambiguous","input":"cool python repos","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_011","category":"ambiguous","input":"interesting backend projects","expected":{"intent":"search_repositories","language":null,"keywords":["backend"],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_012","category":"ambiguous","input":"good repos for machine learning","expected":{"intent":"search_repositories","language":null,"keywords":["machine learning"],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+
+{"id":"case_013","category":"typo","input":"top pyhton repos","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_014","category":"typo","input":"latset python repos","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":null,"sort":"updated","order":"desc","limit":5}}
+{"id":"case_015","category":"typo","input":"top machien learning repos","expected":{"intent":"search_repositories","language":null,"keywords":["machine learning"],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_016","category":"typo","input":"tp3 javascript repos","expected":{"intent":"search_repositories","language":"javascript","keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":3}}
+{"id":"case_017","category":"typo","input":"i want bst pyhton repo latset plz","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":100,"sort":"updated","order":"desc","limit":5}}
+{"id":"case_018","category":"typo","input":"asdfgh python qwer","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+
+{"id":"case_019","category":"conflict","input":"top python repos but sort by latest","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":100,"sort":"updated","order":"desc","limit":5}}
+{"id":"case_020","category":"conflict","input":"most forked repos but show newest","expected":{"intent":"search_repositories","language":null,"keywords":[],"min_stars":null,"sort":"updated","order":"desc","limit":5}}
+{"id":"case_021","category":"conflict","input":"I want top repos but also the most recent ones","expected":{"intent":"search_repositories","language":null,"keywords":[],"min_stars":100,"sort":"updated","order":"desc","limit":5}}
+{"id":"case_022","category":"conflict","input":"popular backend repos sorted by latest","expected":{"intent":"search_repositories","language":null,"keywords":["backend"],"min_stars":100,"sort":"updated","order":"desc","limit":5}}
+
+{"id":"case_023","category":"multilingual","input":"熱門 python 專案","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_024","category":"multilingual","input":"機器學習 repos","expected":{"intent":"search_repositories","language":null,"keywords":["machine learning"],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_025","category":"multilingual","input":"top Python 專案 最新","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":100,"sort":"updated","order":"desc","limit":5}}
+{"id":"case_026","category":"multilingual","input":"前三個 JavaScript 專案","expected":{"intent":"search_repositories","language":"javascript","keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":3}}
+{"id":"case_027","category":"multilingual","input":"人気のPythonリポジトリ","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
+{"id":"case_028","category":"multilingual","input":"最新のPythonリポジトリ","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":null,"sort":"updated","order":"desc","limit":5}}
+{"id":"case_029","category":"multilingual","input":"top Python リポジトリ 最新","expected":{"intent":"search_repositories","language":"python","keywords":[],"min_stars":100,"sort":"updated","order":"desc","limit":5}}
+
+{"id":"case_030","category":"fallback","input":"random stuff pls","expected":{"intent":"search_repositories","language":null,"keywords":[],"min_stars":null,"sort":"stars","order":"desc","limit":5}}
