@@ -30,10 +30,25 @@ pip install openai requests
 
 Set environment variables (never hardcode keys):
 
+**Mac / Linux (bash / zsh)**
 ```bash
 export OPENAI_API_KEY="sk-..."
 export GITHUB_TOKEN="ghp_..."      # optional but raises rate limit from 10 to 30 req/min
 export GROQ_API_KEY="gsk_..."      # required for open-weight models in eval pipeline
+```
+
+**Windows Command Prompt**
+```cmd
+set OPENAI_API_KEY=sk-...
+set GITHUB_TOKEN=ghp_...
+set GROQ_API_KEY=gsk_...
+```
+
+**Windows PowerShell**
+```powershell
+$env:OPENAI_API_KEY="sk-..."
+$env:GITHUB_TOKEN="ghp_..."
+$env:GROQ_API_KEY="gsk_..."
 ```
 
 ### Basic Usage
