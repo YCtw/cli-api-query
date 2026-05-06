@@ -260,27 +260,80 @@ All three models support JSON mode or respond consistently to explicit JSON-only
 
 | Model | Overall | basic | ambiguous | typo | conflict | multilingual | fallback | Threshold |
 |---|---|---|---|---|---|---|---|---|
-| `gpt-4o-mini` | **86.67%** (26/30) | — | — | — | — | — | — | ✅ >85% |
-| `llama-3.3-70b-versatile` | **93.33%** (28/30) | — | — | — | — | — | — | ✅ >85% |
-| `llama-3.1-8b-instant` | **83.33%** (25/30) | — | — | — | — | — | — | ❌ <85% |
+| `gpt-4o-mini` | **90.00%** (27/30) | 7/9 (78%) | 3/3 (100%) | 5/6 (83%) | 4/4 (100%) | 7/7 (100%) | 1/1 (100%) | ✅ >85% |
+| `llama-3.3-70b-versatile` | **93.33%** (28/30) | 9/9 (100%) | 3/3 (100%) | 5/6 (83%) | 3/4 (75%) | 7/7 (100%) | 1/1 (100%) | ✅ >85% |
+| `llama-3.1-8b-instant` | **83.33%** (25/30) | 9/9 (100%) | 2/3 (67%) | 5/6 (83%) | 2/4 (50%) | 7/7 (100%) | 0/1 (0%) | ❌ <85% |
 
-**LLaMA 3.3 70B scored highest overall** — outperforming the closed-source GPT-4o-mini by 6.66 percentage points. This was the most surprising result. A 70B open-weight model, given an identical prompt, was more consistent at applying the conflict resolution rules and multilingual intent mapping than the closed-source model.
+#### Per-model failure breakdown
 
-**GPT-4o-mini passed the threshold at 86.67%.** Its failures were concentrated in edge cases where the conflict resolution rule over-fired: inputs containing only a single sort signal (e.g., `"top pyhton repos"`) sometimes triggered `min_stars=100` even without a competing signal, because the model applied the "popularity loses → set floor" rule without first confirming a conflict was present.
+**GPT-4o-mini (90%, 3 failures)** — the conflict rule **over-fires** on single-signal inputs:
 
-**LLaMA 3.1 8B fell short at 83.33%**, missing the 85% threshold by 2 cases. The failures clustered in:
-- **Conflict + multilingual overlap**: Cases like `"top Python リポジトリ 最新"` (Japanese mixed-language conflict) require simultaneously detecting a conflict across two languages and applying the `min_stars=100` rule — a multi-step reasoning chain that the smaller model occasionally drops a step on.
-- **Heavy typo cases**: `"i want bst pyhton repo latset plz"` — with multiple overlapping errors and an implied conflict — produced inconsistent outputs across runs.
+| Case | Input | Expected `min_stars` | Got | Root cause |
+|---|---|---|---|---|
+| case_008 | `"top backend repos"` | `null` | `100` | "top" alone triggers the floor; no competing signal present |
+| case_009 | `"top 10 web framework projects"` | `null` | `100` | Same: "top" is the only ranking signal |
+| case_014 | `"latset python repos"` | `null` | `100` | Typo of "latest" — model imagined a hidden "top" and fired the floor |
+
+All 3 failures are `min_stars` false positives. Notably GPT-4o-mini passed every conflict case (4/4) and every multilingual case (7/7) — it was over-calibrated to the harder cases at the cost of easy ones.
+
+---
+
+**LLaMA 3.3 70B (93.33%, 2 failures)** — the conflict rule **under-fires** on masked or implicit conflicts:
+
+| Case | Input | Expected `min_stars` | Got | Root cause |
+|---|---|---|---|---|
+| case_017 | `"i want bst pyhton repo latset plz"` | `100` | `null` | Typo-masked "bst" (= "best") not recognized as a popularity signal — floor not applied |
+| case_022 | `"popular backend repos sorted by latest"` | `100` | `null` | "sorted by" override correctly sets `sort=updated`, but the losing "popular" floor is dropped |
+
+Both failures are `min_stars` false negatives. The model handles the primary sort correctly in both cases; it simply drops the secondary consequence (setting the floor for the losing signal).
+
+---
+
+**LLaMA 3.1 8B (83.33%, 5 failures)** — same under-fire pattern as 70B, plus 3 additional failures:
+
+| Case | Input | Expected | Got | Root cause |
+|---|---|---|---|---|
+| case_010 | `"cool python repos"` | `language=python, keywords=[]` | `language=null, keywords=["python"]` | Language misclassified as keyword when preceded by a stop-word |
+| case_017 | `"i want bst pyhton repo latset plz"` | `min_stars=100` | `null` | Same as 70B failure |
+| case_021 | `"I want top repos but also the most recent ones"` | `min_stars=100` | `null` | Conflict resolved correctly (sort=updated) but floor rule dropped |
+| case_022 | `"popular backend repos sorted by latest"` | `min_stars=100` | `null` | Same as 70B failure |
+| case_030 | `"random stuff pls"` | `keywords=[]` | `keywords=["random"]` | "random" treated as a domain keyword |
+
+---
+
+#### Cross-model failure analysis
+
+Comparing failures across all three models reveals a clear structure:
+
+| Case | GPT-4o-mini | LLaMA 3.3 70B | LLaMA 3.1 8B | Pattern |
+|---|---|---|---|---|
+| case_008 | ❌ | ✅ | ✅ | GPT over-fires (no conflict, floor applied) |
+| case_009 | ❌ | ✅ | ✅ | GPT over-fires |
+| case_014 | ❌ | ✅ | ✅ | GPT over-fires on typo |
+| case_017 | ✅ | ❌ | ❌ | All open-weight models under-fire (typo-masked "bst") |
+| case_021 | ✅ | ✅ | ❌ | Only 8B under-fires |
+| case_022 | ✅ | ❌ | ❌ | 70B and 8B under-fire on implicit "popular" |
+
+**case_017 is the hardest case in the entire set** — the only one failed by two models. The input `"i want bst pyhton repo latset plz"` requires recognizing `"bst"` as a typo of `"best"` (a popularity signal), then applying the soft constraint because `"latset"` (= "latest") wins the sort. That is three sequential steps, each requiring non-obvious inference, all on a heavily noisy input. GPT-4o-mini passed it; both Llama models did not.
+
+**GPT-4o-mini and the Llama models fail on opposite sides of the same rule:**
+
+| Model family | Failure mode | Cause |
+|---|---|---|
+| GPT-4o-mini | Applies `min_stars=100` when **no conflict exists** | Over-learned the conflict rule |
+| LLaMA (70B + 8B) | Skips `min_stars=100` when a conflict **does exist** | Drops the secondary consequence after committing to the primary sort |
+
+Both traces to the same fundamental difficulty: the `min_stars=100` floor rule requires reasoning about a *counterfactual* — "which signal was present but lost?" — rather than a direct mapping from input to output. GPT-4o-mini resolves this by assuming a conflict is always present when it sees "top"; LLaMA models resolve the conflict correctly but fail to remember that the loser needs a consolation constraint.
 
 #### Why LLaMA 3.1 8B couldn't reach 85%
 
-The two failing cases share a pattern: they require the model to hold and apply multiple rules simultaneously (detect conflict → choose sort winner → apply soft constraint → normalize language). The 8B model applies each rule correctly in isolation but loses track of one when chaining them. This is a known limitation of smaller models on multi-hop instruction-following.
+The 8B model shares the exact same 2 failures as LLaMA 3.3 70B (cases 017 and 022), plus 3 additional ones (010, 021, 030). The gap comes from general instruction-following depth: case_010 requires understanding that a language name after a stop-word is still a `language` field (not a keyword), and case_021 requires chaining conflict detection with the floor rule across a natural-language "but also" phrasing.
 
-Attempts to push it above 85%:
-- Adding a worked example for the Japanese conflict case to `FEW_SHOTS` → improved consistency but did not flip both failures
-- Simplifying the conflict resolution section into a numbered checklist → no measurable improvement
+Attempts made to push it above 85%:
+- Adding an explicit conflict few-shot example showing `min_stars=100` being set → improved cases 019 and 020 but did not flip 021 and 022
+- Simplifying the conflict resolution section into a numbered checklist → no measurable change
 
-The remaining gap is likely irreducible without fine-tuning or significantly increasing model size. The 8B model's context window handling and instruction-following depth are genuinely limited compared to 70B for tasks requiring 5+ simultaneous rules.
+The remaining 2-case gap (83% → 85%) is a capacity constraint. The 8B model applies each individual rule correctly in isolation; it fails when 3+ rules must be chained on noisy input. Fine-tuning on conflict examples, or chain-of-thought prompting that explicitly walks through each step, would be the most reliable paths to closing it.
 
 ---
 
