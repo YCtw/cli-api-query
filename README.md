@@ -28,7 +28,7 @@ A command-line tool that converts natural language queries into structured GitHu
 pip install openai requests
 ```
 
-Set environment variables (never hardcode keys):
+Set environment variables (Use your own):
 
 **Mac / Linux (bash / zsh)**
 ```bash
